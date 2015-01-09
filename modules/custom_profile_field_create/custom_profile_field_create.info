@@ -1,0 +1,4 @@
+name = Custom Profile field create
+description = "Custom module for creating  new profile field and entering data for all the trainer profiles."
+package = Other
+core = 7.x

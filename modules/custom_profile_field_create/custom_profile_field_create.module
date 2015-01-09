@@ -1,0 +1,174 @@
+<?php
+/**
+	* Implementation of hook_enable
+	* Creates the field field_trainer_location on module enable.
+	*/
+function custom_profile_field_create_enable () {
+	field_cache_clear();
+
+	//getting the vocabulary info if already exists
+	$vocab = taxonomy_vocabulary_machine_name_load('trainer_location_term');
+	//if not
+	if (!$vocab) {
+		$new_vocab = (object) array(
+	  	'name' => 'Trainer Location',
+  		'description' => 'This vocabulary is used to group the trainers according to their groups',
+  		'machine_name' => 'trainer_location_term',
+		);
+		$vocab = taxonomy_vocabulary_save($new_vocab);
+		print_r($vocab.' created');
+		//creating an array of terms for th e vocabulary
+		$new_option_array = array('California', 'Georgia', 'Illinois', 'Massachusetts', 'New York', 'Texas', 'Off Site Trainer (OST)', 'CBO', 'Train the Trainer', 'EIS', 'Training Education Team');
+
+		$tid = array();
+		$vocab = taxonomy_vocabulary_machine_name_load('trainer_location_term');
+		foreach ($new_option_array as $key => $value) {
+			$tid[] = custom_create_taxonomy_term($value, $vocab->vid);	
+		}
+		print_r($tid.' created');
+	}
+	//getiing the field info if already exists
+	if(!field_info_field('field_trainer_location')){
+		#create the field singleton
+		$field = array(
+			'field_name' => 'field_trainer_location',
+			'type' => 'taxonomy_term_reference',
+			'settings' => array(
+				'allowed_values' => array(
+					array(
+						'vocabulary' => $vocab->machine_name,
+						'parent' => 0
+						),
+					),
+				),
+			);
+		$field = field_create_field($field);
+		print_r($field);
+		#create the instance on the bundle.
+		$instance['field_trainer_location'] = array(
+			'field_name' => $field['field_name'],
+			'entity_type' => 'profile2',
+			'bundle' => 'trainer_profile',
+			'label' => 'Trainer Group',
+			'description' => 'Field for the trainer profiles to sort them accordingly',
+			'required' => FALSE,
+			'widget' => array(
+				'type' => 'select',
+				),
+			);
+	
+		drupal_set_message('Field instance was created.');
+	}
+
+	print_r($instance);
+	if(!empty($instance)) {
+		foreach ($instance as $instance_field) {
+			field_create_instance($instance_field);
+		}
+	}
+}
+
+function custom_create_taxonomy_term($name, $vid) {
+	$term = new stdClass();
+  $term->name = $name;
+  $term->vid = $vid;
+  taxonomy_term_save($term);
+  return $term->tid;
+}
+
+
+/**
+	* Implementation  of hook_menu
+	*/
+function custom_profile_field_create_menu () {
+	$items = array();
+	$items['import-trainers'] = array(
+		'title' => 'Create values for Trainers profile field',
+  	'description' => 'Create Trainers Profile Field',
+  	'page callback' => 'custom_profile_field_create_admin',
+  	'access callback' => TRUE,
+  	'type' => MENU_CALLBACK,
+	);
+	return $items;
+}
+
+/**
+	* Implementation of the funciton declared in hook_menu
+	*/
+function custom_profile_field_create_admin () {
+
+	$group = field_info_field('field_tr_location');
+	$groupOptions = array();
+	$groupOptions = $group['settings']['allowed_values'];
+	$role = field_info_field('field_tr_role');
+	$roleOptions = $role['settings']['allowed_values'];
+	$vocab = taxonomy_vocabulary_machine_name_load('trainer_location_term');
+	$group_taxonomy = entity_load('taxonomy_term', FALSE, array('vid' => $vocab->vid));
+	$terms = array();
+	foreach ($group_taxonomy as $key => $value) {
+		$terms[$key] = $value->name; 	
+	}
+
+	//$query = db_select('user', 'u');
+	//$query->condition();
+
+	$query = new EntityFieldQuery();
+	$query->entityCondition('entity_type', 'profile2')
+	->entityCondition('bundle', 'trainer_profile');
+
+	$result = $query->execute();
+	$uids = array_keys($result['profile2']);
+	$users = entity_load('profile2', $uids);
+	$updateArray = array();
+	foreach ($users as $pid => $obj) {
+
+		$roleVal = field_get_items('profile2', $obj, 'field_tr_role');
+		$groupVal = field_get_items('profile2', $obj, 'field_tr_location');
+		$trainer_location_value = field_get_items('profile2', $obj, 'field_trainer_location');
+		if($groupVal[0]['value']) {
+			if($groupVal[0]['value'] == 'ttt') {
+				if($roleVal[0]['value'] == 't') {
+					$trainer_loc = array_search("Train the Trainer", $terms);
+				}
+				elseif($roleVal[0]['value'] == "tet") {
+					$trainer_loc = array_search("Training Education Team", $terms);
+				}
+			}
+			else {
+				$group = $groupOptions[$groupVal[0]['value']];
+				$trainer_loc = array_search($group, $terms);
+			}
+			$obj->field_trainer_location['und'][0]['tid'] = $trainer_loc;
+			entity_save('profile2', $obj);
+			$updateArray[] = array(
+				'uid' => $obj->uid,
+				'group' => $groupVal[0]['value'],
+				'role' => $roleVal[0]['value'],
+				'trainer_location' => $obj->field_trainer_location['und'][0]['tid'],
+			);
+		}
+	}
+	createTable($updateArray);
+} 
+
+/**
+	* Function to display the end result in a table
+	*/
+function createTable($data) {
+	$table = "<table border = 1><tr>";
+	$table .= "<th>uid</th>
+						 <th>group</th>
+						 <th>role</th>
+						 <th>trainer_location(tid)</th></tr>";
+
+	foreach ($data as $key => $value) {
+		$table .= '<tr>';
+		$table .= '<td>'.$value['uid'].'</td>';
+		$table .= '<td>'.$value['group'].'</td>';
+		$table .= '<td>'.$value['role'].'</td>';
+		$table .= '<td>'.$value['trainer_location'].'</td>';
+		$table .= '</tr>';
+	}
+$table .= "</table>";
+echo $table;
+}

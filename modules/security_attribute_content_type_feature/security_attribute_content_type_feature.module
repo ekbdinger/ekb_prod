@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Security Attribute content type feature.
+ */
+
+include_once 'security_attribute_content_type_feature.features.inc';

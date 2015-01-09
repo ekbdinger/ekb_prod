@@ -1,0 +1,130 @@
+/*
+ * This file should get overwritten if Method 1 is used. If Method 2 is chosen,
+ * remove this comment and start adding your styles to this file.
+ */
+ .unpublished {
+	background-color: #C0392B;
+	text-align: center;
+	color: #FFF;
+}
+
+/*.field-name-field-internal-only {
+	 width: 9%; 
+	 text-align: center; 
+	 color: #FFF; 
+	 font-weight: 600; 
+	 background-color:	 #D9534F; 
+}*/
+
+.indented {
+	margin-left: 25px;
+}
+
+#map {
+	height:600px;
+	width:100%;
+}
+
+
+.primary-sec .field-label {
+	background-color: #3498DB;
+	color: #FFF;
+	padding: 2px 0px 2px 8px;
+}
+
+/* Primary Page theming */
+
+.pp-container {
+	margin: 2px 2px 15px 0px;
+	background-color: #EEE;
+	border: 0px;
+	border-radius: 6px;
+}
+
+.pp-header {
+	background-color: #2ABB9B;
+	color: #fff;
+	border-radius: 6px;
+	font-size: large;
+	padding: 6px;
+}
+
+.pp-body {
+	padding: 8px;
+}
+
+/* end of PP theming */
+
+.navbar-collapse.collapse {
+	border-color: #101010 !important;
+	margin-left: -15px !important;
+}
+
+.menu.nav.navbar-nav {
+	float: none !important;
+}
+
+@media (min-width: 1200px) {
+	.navbar #block-search-form {
+		float: right;
+		width: 20%;
+		margin-top: -3.5%;
+	}
+}
+
+
+.view-favourite-documents .marker {
+	color: #FFF;
+	background:#c0392b;
+	border-radius: 2px;
+	padding: 2px 5px 2px 5px !important;
+}
+
+.box-section {
+	padding: 2px 2px 15px 2px;
+	text-align: center;
+	font-size: 14px;
+}
+
+.box-body{
+	font-size: 16px;
+}
+
+.field-name-field-pp-ent-reference .field-items a:before {
+	content: url("../images/bullet-marker.png");
+	padding: 2px 10px 0px 0px;
+}
+
+.field-name-field-pp-ent-reference .field-label{
+	font-weight: 100;
+	font-size: 20px;
+	color: #6C7A89;
+	margin-bottom: 12px;
+	margin-top: 10px;
+}
+
+.field-name-field-pp-ent-reference .field-item{
+	padding: 2px 2px 5px 2px;
+}
+
+
+/* Security Attribute node type entity_ref links  */
+
+/*
+
+.field.field-name-field-pp-ent-reference .field-label {
+	width:20%;
+	padding: 4px;
+	color: #fff;
+	background-color: #65C6BB;
+	margin-top: 5px;
+}
+
+.field.field-name-field-pp-ent-reference .field-items {
+	width: 20%;
+	padding: 4px;
+	background-color: #ECF0F1;
+	margin-bottom: 5px;
+
+}
+

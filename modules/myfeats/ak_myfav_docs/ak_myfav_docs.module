@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the ak_myfav_docs feature.
+ */
+
+include_once 'ak_myfav_docs.features.inc';

@@ -1,0 +1,309 @@
+<?php
+
+/**
+	* Implementation of hook_menu
+	*/
+function custom_ecw_menu() {
+	// $items['find-trainer-map'] = array(
+	// 	'title' => 'Find A Trainer Map',
+	// 	'page callback' => 'drupal_get_form',
+ //    'page arguments' => array('trainer_map_form'),
+	// 	'access callback' => TRUE,
+	// 	);
+  $items['user/%user/favorite'] = array(
+    'title' => 'My Favorite Pages',
+    'page callback' => 'custom_ecw_favorite',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+ 	return $items;
+ }
+
+/**
+  * Implemenation of callback function
+  *
+  */
+function custom_ecw_favorite() {
+  $view = views_get_view('favourite_documents');
+  $view->set_display('page_1');
+  $view->pre_execute();
+  $view->execute();
+  return $view->preview('favourite_documents');
+  $view->destroy();
+}
+
+/**
+  * Implementation of callback function
+  */
+// function trainer_map_form($form, &$form_state) {
+//   $form['map'] = array(
+//     '#type' => 'markup',
+//     '#title' => 'Map',
+//     '#markup' => "<div id='map'></div>",
+//     );
+
+//   return $form;
+// }
+
+/**
+  * Implementation of hook_node_view_alter()
+  * (hiding the Interal only notification on the nodes not marked with internal only)
+  */
+function custom_ecw_node_view_alter(&$build) {
+  if($build['#bundle'] == 'priv_documentation' || $build['#bundle'] == 'file' || $build['#bundle'] == 'video') {
+    if (is_array($build['field_internal_only']['#object']->field_internal_only)) {
+      if(empty($build['field_internal_only']['#object']->field_internal_only) || $build['field_internal_only']['#object']->field_internal_only['und'][0]['value'] == 0) {
+        //$build['#object']->field_internal_only == array();
+        unset($build['field_internal_only']);
+      }
+    }
+  }
+}
+
+
+
+/**
+  * Implementation of hook_preprocess.
+  */
+// function custom_ecw_preprocess_page(&$variables) {
+//   if(isset($_GET['q'])){
+//       $script = '/js/custom_ecw.js';//script name
+//       $currentPath = drupal_get_path_alias($_GET['q']);
+//       $targetPath = 'content/documentation';
+//       if($_GET['q'] == $targetPath){
+//         drupal_add_js(drupal_get_path('module', 'custom_ecw' ).'/js/custom_ecw.js');
+//       }
+//   }
+//   if(isset($_GET['q'])){
+//     if($_GET['q'] == 'find-trainer-map') {
+//       drupal_add_js('https://maps.googleapis.com/maps/api/js', 'external');
+//       find_a_trainer_map();
+//     }
+//   }
+// }
+
+/**
+  * Implementation of hook_form_alter
+  */
+// function custom_ecw_form_alter(&$form, &$form_state, $form_id ){
+//   if ($form_id == 'webform_client_form_22831') {
+//     $form['#submit'][] = 'custom_webform_client_form_submit';
+//     //print_r($form);exit();
+//   }
+//   if ($form_id == 'account_request_form_entityform_edit_form') {
+//     $form['#validate'][] = 'custom_ecw_form_validate_email';
+//   } 
+// }
+
+// function find_a_trainer_map() {
+//   module_load_include('inc','webform','includes/webform.submissions');
+//   $submissions = webform_get_submissions(array('nid'=>22831));
+//   //end($submissions);
+//   $fid = 0;
+//   $submissions = array_pop($submissions);
+//   foreach ($submissions as $submission){
+//     foreach ($submission as $row=>$data){
+//       $fid = $data['value'][0];
+//     }
+//   }
+//   $query = db_select('file_managed', 'fm')
+//        ->fields('fm', array('uri'))
+//        ->condition('fid', $fid);
+
+//   $results = $query->execute()->fetchAll();
+//   $filename = $results[0]->uri;
+//   $fileData = read_from_csv($filename);
+//   $markers = array();
+//   foreach ($fileData as $key => $value) {
+//     $markers[$key] = array(
+//         'latitude' => $value['latitude'],
+//         'longitude' => $value['longitude'],
+//         'title' => $value['Firstname'].' '.$value['Lastname'],
+//         );
+//   }
+//   $settings['markers'] = $markers;
+//   drupal_add_js($settings, 'setting');
+//   drupal_add_js(drupal_get_path('module', 'custom_ecw' ).'/js/map.js');
+// }
+
+// function read_from_csv($filename) {
+//   $header = NULL;
+//   $delimiter=',';
+//   $data = array();
+//   if (($handle = fopen($filename, 'r')) !== FALSE)
+//   {
+//     while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE)
+//     {
+//       if(!$header)
+//           $header = $row;
+//       else
+//           $data[] = array_combine($header, $row);
+//     }
+//     fclose($handle);
+//   }
+//   return $data;
+// }
+
+// function custom_webform_client_form_submit($form, &$form_state) {
+// 	$filename = $form_state['complete form']['submitted']['import_csv']['#file']->uri ? $form_state['complete form']['submitted']['import_csv']['#file']->uri : NULL ;
+//   $node = $form['#node'];
+// 	$data = read_from_csv($filename);
+//   $types = profile2_get_types();
+//   $added = 0;
+//   $updated = 0;
+//   $created = 0;
+//   $uids = '';
+//   foreach($data as $key => $value) {
+//   	$firstname = $value['Firstname'];
+//   	$lastname = $value['Lastname'];
+//   	$username = $firstname.'.'.$lastname;
+//   	$user = user_load_by_name($username);
+//   	if ($user) {
+//   		$uid = $user->uid;
+//   		print_r('UID exists: '.$uid);
+//   		//$profile = profile2_load_by_user($user, $type_name = 'trainer_map');
+//   		//TODO: Fetch the field collection values, and also crete field collection values, create the profile
+//       $profile = profile2_load_by_user($user, $type_name = 'trainer_map');
+//       if( $profile ) {
+//         updateFieldCollection($profile, $value);
+//         $uids .= $user->uid.','; 
+//         $updated += 1;
+//       } 
+//       else {
+//         createProfile($user, $value);
+//         $uids .= $user->uid.','; 
+//         $added += 1;
+//         //createFieldCollectionValue();
+//       }
+//   	}
+//   	else {
+//   		$account_info = array(
+//   			'name' => $firstname.'.'.$lastname,
+//   			'mail' => $firstname.'.'.$lastname.'@eclinicalworks.com',
+//   			'pass' => $firstname.'.'.$lastnam,
+//   			'status' => 1,
+//   			);
+//   		$user = user_save('', $account_info);
+//   		if (!$user) {
+//   			$user = 'Error while saving user account for '.$account_info['name'];
+//   		}
+//   		print_r("account created");
+//       createProfile($user, $value);
+//       $uids .= $user->uid.','; 
+//       $created += 1;
+//   	}
+//   }
+//   print_r($uids);
+//   //$firstname = $data
+//   print_r("added: ".$added);
+//   print_r("updated: ".$updated);
+//   print_r("created: ".$created);
+//   exit();
+// }
+
+// function createProfile($user, $value) {
+//   $profile = profile_create(array('type' => 'trainer_map',
+//                                   'uid' => $user->uid,
+//                                   'field_tr_first_name' => $value['Firstname'],
+//                                   'field_tr_last_name' => $value['Lastname'],
+//                                   ));
+//   $profile->field_tr_first_name = array();
+//   $profile->field_tr_last_name = array();
+//   $profile->field_tr_first_name[LANGUAGE_NONE][0]['value'] = $value['Firstname'];
+//   $profile->field_tr_last_name[LANGUAGE_NONE][0]['value'] = $value['Lastname'];
+//   $form_state['values'] = array();
+//   $form_state['values']['profile_main'] = array();
+//   $form = array();
+//   $form['#parents'] = array();
+//   field_attach_submit('profile2', $profile, $form, $form_state);
+//   $profile->bundle = 'trainer_map';
+//   profile2_save($profile);
+//   updateFieldCollection($profile, $value);
+// }
+
+
+// function updateFieldCollection($profile, $value) {
+//   $profile->field_tr_first_name = array();
+//   $profile->field_tr_last_name = array();
+//   $profile->field_tr_first_name[LANGUAGE_NONE][0]['value'] = $value['Firstname'];
+//   $profile->field_tr_last_name[LANGUAGE_NONE][0]['value'] = $value['Lastname'];
+
+//   $profile->field_user_location = array();
+
+//   $loc_fields = array(
+//     'name' => $value['location_name'],
+//     'street' => $value['street'],
+//     'city' => $value['city'],
+//     'postal_code' => $value['zipcode'],
+//     'latitude' => $value['latitude'],
+//     'longitude' => $value['longitude'],
+//     'locpick' => array(
+//       'user_latitude' => $value['latitude'],
+//       'user_longitude' => $value['longitude'],
+//       ),
+//     'province_name' => $value['state'],
+//     'country_name' => $value['country'],
+//     );
+//   $profile->field_user_location[LANGUAGE_NONE][0] = $loc_fields;
+
+
+//   profile2_save($profile);
+
+// //----------------------------------------------------------------------------------
+// // code kept in case for future changes
+//   // $newfields = array();
+//   // $newfields['field_name'] = 'field_trainer_location';
+//   // //$newfields['field_first_name'][LANGUAGE_NONE][0]['value'] = $value['Firstname'];
+//   // //$newfields['field_last_name'][LANGUAGE_NONE][0]['value'] = $value['Lastname'];
+//   // $newfields['field_city'][LANGUAGE_NONE][0]['value'] = $value['City'];
+//   // $newfields['field_state'][LANGUAGE_NONE][0]['value'] = $value['State'];
+//   // $newfields['field_zipcode'][LANGUAGE_NONE][0]['value'] = $value['zipcode'];
+//   // $from_date = explode('-', $value['From ']);
+//   // $to_date = explode('-', $value['to']);
+//   // //print_r(mktime(0,0,0, $from_date[1], $from_date[0], $from_date[2]));
+//   // //print_r(date('Y-m-d H:i:s', mktime(0,0,0, $to_date[1], $to_date[0], $to_date[2])));exit();
+//   // $newfields['field_training_from'][LANGUAGE_NONE][0]['value'] = date('Y-m-d H:i:s', mktime(0,0,0, $from_date[1], $from_date[0], $from_date[2]));
+//   // $newfields['field_training_to'][LANGUAGE_NONE][0]['value'] = date('Y-m-d H:i:s', mktime(0,0,0, $to_date[1], $to_date[0], $to_date[2]));
+//   // $field_collection_val = entity_create('field_collection_item', $newfields);
+//   // $field_collection_val->setHostEntity('profile2', $profile);
+//   // // $field_collection_val->field_trainer_location[LANGUAGE_NONE][1]['value'] = $new_fields;
+//   // $field_collection_val->save();
+//   // field_attach_presave('profile2', $update);
+//   // field_attach_update('profile2', $update);
+
+
+//   // if ($profile && $collection && !empty($fields)) {
+//   //   //$fields
+//   //   // $field_collection_val = entity_create('field_collection_item', array('field_name' => 'field_trainer_location' ));
+//   //   // $field_collection_val->setHostEntity('profile2', $profile);
+//   //   // print_r($field_collection_val);
+//   //   $index=0;
+//   //   $eid = $profile->field_trainer_location[LANGUAGE_NONE][0]['value'];
+//   //   print_r("eid: ".$eid);
+//   //   $entity_value = entity_load('field_collection_item', array($eid)); 
+//   //   print_r($entity_value);
+//   //   exit();
+//   //   //$profile_wrapper = entity_metadata_wrapper('field_collection_item', $entity);
+//   //   //print_r($fields);
+//   //   foreach ($fields as $field => $val) {
+//   //    $field_collection_val->field_trainer_location[LANGUAGE_NONE][$index]['value'] = $data;
+//   //     print_r($entity[$eid]->$field[LANGUAGE_NONE][0]['value']);
+//   //     //$profile_wrapper->$field->set($data);
+//   //   }
+//   //   $entity_value[$eid]->save();
+
+//   //   print_r($entity_value);exit();
+//   // }
+// //----------------------------------------------------------------------------------------------------
+// }
+
+// function custom_ecw_form_validate_email($form, &$form_state) {
+// 	$email = $form_state['values']['field_email']['und'][0]['value'];	
+// 	if( !filter_var($email, FILTER_VALIDATE_EMAIL) ) {
+// 		form_set_error('email', t('Not a valid email address'));
+//  	}
+// }
+
+?>

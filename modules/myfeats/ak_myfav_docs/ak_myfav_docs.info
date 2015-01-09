@@ -1,0 +1,15 @@
+name = ak_myfav_docs
+description = Creates flag link on Document nodes to add favorite and a views listing page of favorite documents
+core = 7.x
+package = Knowledge
+php = 5.2.4
+version = 7.x-1.0-beta2
+project = ak_myfav_docs
+dependencies[] = flag
+dependencies[] = views
+dependencies[] = views_bootstrap
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:1
+features[flag][] = favourites
+features[views_view][] = favourite_documents
+features_exclude[dependencies][ctools] = ctools

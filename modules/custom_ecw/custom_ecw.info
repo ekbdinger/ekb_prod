@@ -1,0 +1,7 @@
+name = Custom Module ECW
+description = "Contains most of the custom code wriiten for ECW"
+package = Others
+; Information added by drupal.org packaging script on 2013-01-31
+version = "7.x-1.0"
+core = "7.x"
+project = "Others"
